@@ -1,5 +1,3 @@
-# Crear HTML completo con el código completo del juego interactivo
-full_html = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -95,75 +93,57 @@ document.addEventListener('DOMContentLoaded', () => {
   let stats = { correct: 0, incorrect: 0, completed: 0, total: animals.length };
   document.getElementById('total').textContent = stats.total;
   const animalsContainer = document.getElementById('animals-container');
-  const shuffledAnimals = [...animals].sort(() => Math.random() - 0.5);
-
-  shuffledAnimals.forEach(animal => {
+  const shuffled = [...animals].sort(() => Math.random() - 0.5);
+  shuffled.forEach(a => {
     const el = document.createElement('div');
     el.className = 'draggable bg-white rounded-lg shadow-md p-3 flex flex-col items-center';
     el.setAttribute('draggable', 'true');
-    el.dataset.id = animal.id;
-    el.dataset.category = animal.category;
-    el.innerHTML = `<div class="animal-icon text-4xl mb-1">${animal.emoji}</div><div class="text-center font-medium">${animal.name}</div>`;
-    el.addEventListener('dragstart', dragStart);
-    el.addEventListener('dragend', dragEnd);
+    el.dataset.id = a.id; el.dataset.category = a.category;
+    el.innerHTML = `<div class="animal-icon text-4xl mb-1">${a.emoji}</div><div class="text-center font-medium">${a.name}</div>`;
+    el.addEventListener('dragstart', () => { dragged = el; el.classList.add('dragging'); el.style.opacity = '0.4'; });
+    el.addEventListener('dragend', () => { el.classList.remove('dragging'); el.style.opacity = '1'; dragged = null; });
     animalsContainer.appendChild(el);
   });
-
-  document.querySelectorAll('.category-container').forEach(container => {
-    container.addEventListener('dragover', e => e.preventDefault());
-    container.addEventListener('drop', function () {
+  document.querySelectorAll('.category-container').forEach(c => {
+    c.addEventListener('dragover', e => e.preventDefault());
+    c.addEventListener('dragenter', () => c.classList.add('drag-over'));
+    c.addEventListener('dragleave', () => c.classList.remove('drag-over'));
+    c.addEventListener('drop', () => {
       if (!dragged) return;
-      const correct = dragged.dataset.category === this.dataset.category;
-      checkAnswer(dragged, this, correct);
-      this.classList.remove('drag-over');
+      const correct = dragged.dataset.category === c.dataset.category;
+      checkAnswer(dragged, c, correct);
+      c.classList.remove('drag-over');
     });
-    container.addEventListener('dragenter', function () { this.classList.add('drag-over'); });
-    container.addEventListener('dragleave', function () { this.classList.remove('drag-over'); });
   });
-
   let dragged = null;
-  function dragStart() { dragged = this; this.classList.add('dragging'); this.style.opacity = '0.4'; }
-  function dragEnd() { this.classList.remove('dragging'); this.style.opacity = '1'; dragged = null; }
-
-  function checkAnswer(animal, target, isCorrect) {
-    animal.removeAttribute('draggable');
-    target.appendChild(animal);
+  function checkAnswer(el, target, correct) {
+    el.removeAttribute('draggable');
+    target.appendChild(el);
     stats.completed++;
-    if (isCorrect) {
-      stats.correct++;
-      animal.classList.add('correct-animation', 'ring-2', 'ring-green-500');
+    if (correct) {
+      stats.correct++; el.classList.add('correct-animation', 'ring-2', 'ring-green-500');
       showFeedback("Correct!", 'text-green-600');
     } else {
-      stats.incorrect++;
-      animal.classList.add('incorrect-animation', 'ring-2', 'ring-red-500');
+      stats.incorrect++; el.classList.add('incorrect-animation', 'ring-2', 'ring-red-500');
       showFeedback("Oops!", 'text-red-600');
     }
     document.getElementById('progress').textContent = stats.completed;
     document.getElementById('correct-count').textContent = stats.correct;
     document.getElementById('incorrect-count').textContent = stats.incorrect;
-    if (stats.completed === stats.total) setTimeout(showCompletionModal, 1500);
+    if (stats.completed === stats.total) setTimeout(showModal, 1500);
   }
-
   function showFeedback(msg, cls) {
-    const box = document.getElementById('feedback'); const p = box.querySelector('p');
+    const box = document.getElementById('feedback'), p = box.querySelector('p');
     p.textContent = msg; p.className = `text-lg font-semibold ${cls}`;
     box.classList.remove('hidden'); setTimeout(() => box.classList.add('hidden'), 2000);
   }
-
-  function showCompletionModal() {
+  function showModal() {
     document.getElementById('final-correct').textContent = stats.correct;
     document.getElementById('final-incorrect').textContent = stats.incorrect;
     document.getElementById('completion-modal').classList.remove('hidden');
   }
-
   document.getElementById('play-again').addEventListener('click', () => window.location.reload());
 });
 </script>
 </body>
 </html>
-"""
-
-# Guardar el nuevo archivo index.html
-output_file = Path("/mnt/data/index.html")
-output_file.write_text(full_html.strip(), encoding="utf-8")
-output_file
