@@ -1,69 +1,169 @@
-
+# Crear HTML completo con el código completo del juego interactivo
+full_html = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animal Categorization Game</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .draggable {
-            cursor: grab;
-            transition: transform 0.15s, box-shadow 0.15s;
-        }
-        .draggable:active {
-            cursor: grabbing;
-            transform: scale(1.05);
-        }
-        .draggable.dragging {
-            opacity: 0.8;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-        .category-container {
-            min-height: 180px;
-            transition: background-color 0.3s;
-        }
-        .category-container.drag-over {
-            background-color: rgba(147, 197, 253, 0.3);
-        }
-        .animal-icon {
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        @keyframes correct {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        @keyframes incorrect {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-10px); }
-            40% { transform: translateX(10px); }
-            60% { transform: translateX(-10px); }
-            80% { transform: translateX(10px); }
-        }
-        .correct-animation {
-            animation: correct 0.5s ease;
-        }
-        .incorrect-animation {
-            animation: incorrect 0.5s ease;
-        }
-        @media (max-width: 768px) {
-            .animal-icon {
-                width: 50px;
-                height: 50px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animal Categorization Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .draggable { cursor: grab; transition: transform 0.15s, box-shadow 0.15s; }
+    .draggable:active { cursor: grabbing; transform: scale(1.05); }
+    .draggable.dragging { opacity: 0.8; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    .category-container { min-height: 180px; transition: background-color 0.3s; }
+    .category-container.drag-over { background-color: rgba(147, 197, 253, 0.3); }
+    .animal-icon { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
+    @keyframes correct { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    @keyframes incorrect {
+      0%,100% { transform: translateX(0); }
+      20% { transform: translateX(-10px); }
+      40% { transform: translateX(10px); }
+      60% { transform: translateX(-10px); }
+      80% { transform: translateX(10px); }
+    }
+    .correct-animation { animation: correct 0.5s ease; }
+    .incorrect-animation { animation: incorrect 0.5s ease; }
+    @media (max-width: 768px) {
+      .animal-icon { width: 50px; height: 50px; }
+    }
+  </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-<div id="game-container" class="w-full max-w-5xl">
-<!-- Full interactive game content goes here -->
+<div id="game-container" class="w-full max-w-5xl bg-white rounded-xl shadow-lg p-6">
+  <div class="flex justify-between items-center mb-4">
+    <div class="text-xl font-semibold text-indigo-700">Progress: <span id="progress">0</span>/<span id="total">12</span></div>
+    <div class="flex items-center">
+      <div class="mr-4"><span class="font-semibold text-green-600">Correct: <span id="correct-count">0</span></span></div>
+      <div><span class="font-semibold text-red-600">Incorrect: <span id="incorrect-count">0</span></span></div>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap justify-center gap-4 mb-8" id="animals-container"></div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="category-box">
+      <div class="bg-blue-100 rounded-t-lg p-3"><h2 class="text-xl font-bold text-blue-800 text-center">Mammals</h2></div>
+      <div class="category-container border-2 border-blue-300 bg-blue-50 rounded-b-lg p-4 flex flex-wrap justify-center gap-2" data-category="mammal"></div>
+    </div>
+    <div class="category-box">
+      <div class="bg-green-100 rounded-t-lg p-3"><h2 class="text-xl font-bold text-green-800 text-center">Reptiles</h2></div>
+      <div class="category-container border-2 border-green-300 bg-green-50 rounded-b-lg p-4 flex flex-wrap justify-center gap-2" data-category="reptile"></div>
+    </div>
+    <div class="category-box">
+      <div class="bg-purple-100 rounded-t-lg p-3"><h2 class="text-xl font-bold text-purple-800 text-center">Amphibians</h2></div>
+      <div class="category-container border-2 border-purple-300 bg-purple-50 rounded-b-lg p-4 flex flex-wrap justify-center gap-2" data-category="amphibian"></div>
+    </div>
+  </div>
 </div>
+
+<div id="feedback" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-4 hidden">
+  <p class="text-lg font-semibold"></p>
+</div>
+
+<div id="completion-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+  <div class="bg-white rounded-xl shadow-xl p-8 max-w-md mx-4">
+    <h2 class="text-2xl font-bold text-indigo-700 mb-4">Great Job!</h2>
+    <p class="text-lg mb-6">You've completed the animal classification game!</p>
+    <div class="mb-6">
+      <p class="font-semibold text-lg">Your Results:</p>
+      <p class="text-green-600">Correct: <span id="final-correct">0</span></p>
+      <p class="text-red-600">Incorrect: <span id="final-incorrect">0</span></p>
+    </div>
+    <button id="play-again" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg w-full transition duration-300">
+      Play Again
+    </button>
+  </div>
+</div>
+
 <script>
-// The original script from the user goes here (omitted for brevity to keep the code readable)
+document.addEventListener('DOMContentLoaded', () => {
+  const animals = [
+    { id: 1, name: "Elephant", category: "mammal", emoji: "🐘" },
+    { id: 2, name: "Lion", category: "mammal", emoji: "🦁" },
+    { id: 3, name: "Dolphin", category: "mammal", emoji: "🐬" },
+    { id: 4, name: "Monkey", category: "mammal", emoji: "🐒" },
+    { id: 5, name: "Snake", category: "reptile", emoji: "🐍" },
+    { id: 6, name: "Turtle", category: "reptile", emoji: "🐢" },
+    { id: 7, name: "Crocodile", category: "reptile", emoji: "🐊" },
+    { id: 8, name: "Lizard", category: "reptile", emoji: "🦎" },
+    { id: 9, name: "Frog", category: "amphibian", emoji: "🐸" },
+    { id: 10, name: "Salamander", category: "amphibian", emoji: "🦎" },
+    { id: 11, name: "Toad", category: "amphibian", emoji: "🐸" },
+    { id: 12, name: "Newt", category: "amphibian", emoji: "🦎" }
+  ];
+  let stats = { correct: 0, incorrect: 0, completed: 0, total: animals.length };
+  document.getElementById('total').textContent = stats.total;
+  const animalsContainer = document.getElementById('animals-container');
+  const shuffledAnimals = [...animals].sort(() => Math.random() - 0.5);
+
+  shuffledAnimals.forEach(animal => {
+    const el = document.createElement('div');
+    el.className = 'draggable bg-white rounded-lg shadow-md p-3 flex flex-col items-center';
+    el.setAttribute('draggable', 'true');
+    el.dataset.id = animal.id;
+    el.dataset.category = animal.category;
+    el.innerHTML = `<div class="animal-icon text-4xl mb-1">${animal.emoji}</div><div class="text-center font-medium">${animal.name}</div>`;
+    el.addEventListener('dragstart', dragStart);
+    el.addEventListener('dragend', dragEnd);
+    animalsContainer.appendChild(el);
+  });
+
+  document.querySelectorAll('.category-container').forEach(container => {
+    container.addEventListener('dragover', e => e.preventDefault());
+    container.addEventListener('drop', function () {
+      if (!dragged) return;
+      const correct = dragged.dataset.category === this.dataset.category;
+      checkAnswer(dragged, this, correct);
+      this.classList.remove('drag-over');
+    });
+    container.addEventListener('dragenter', function () { this.classList.add('drag-over'); });
+    container.addEventListener('dragleave', function () { this.classList.remove('drag-over'); });
+  });
+
+  let dragged = null;
+  function dragStart() { dragged = this; this.classList.add('dragging'); this.style.opacity = '0.4'; }
+  function dragEnd() { this.classList.remove('dragging'); this.style.opacity = '1'; dragged = null; }
+
+  function checkAnswer(animal, target, isCorrect) {
+    animal.removeAttribute('draggable');
+    target.appendChild(animal);
+    stats.completed++;
+    if (isCorrect) {
+      stats.correct++;
+      animal.classList.add('correct-animation', 'ring-2', 'ring-green-500');
+      showFeedback("Correct!", 'text-green-600');
+    } else {
+      stats.incorrect++;
+      animal.classList.add('incorrect-animation', 'ring-2', 'ring-red-500');
+      showFeedback("Oops!", 'text-red-600');
+    }
+    document.getElementById('progress').textContent = stats.completed;
+    document.getElementById('correct-count').textContent = stats.correct;
+    document.getElementById('incorrect-count').textContent = stats.incorrect;
+    if (stats.completed === stats.total) setTimeout(showCompletionModal, 1500);
+  }
+
+  function showFeedback(msg, cls) {
+    const box = document.getElementById('feedback'); const p = box.querySelector('p');
+    p.textContent = msg; p.className = `text-lg font-semibold ${cls}`;
+    box.classList.remove('hidden'); setTimeout(() => box.classList.add('hidden'), 2000);
+  }
+
+  function showCompletionModal() {
+    document.getElementById('final-correct').textContent = stats.correct;
+    document.getElementById('final-incorrect').textContent = stats.incorrect;
+    document.getElementById('completion-modal').classList.remove('hidden');
+  }
+
+  document.getElementById('play-again').addEventListener('click', () => window.location.reload());
+});
 </script>
 </body>
 </html>
+"""
+
+# Guardar el nuevo archivo index.html
+output_file = Path("/mnt/data/index.html")
+output_file.write_text(full_html.strip(), encoding="utf-8")
+output_file
